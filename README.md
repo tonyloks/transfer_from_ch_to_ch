@@ -1,83 +1,107 @@
-transfer_from_ch_to_ch
-Р­С‚РѕС‚ РїСЂРѕРµРєС‚ РїСЂРµРґРЅР°Р·РЅР°С‡РµРЅ РґР»СЏ РїРµСЂРµРЅРѕСЃР° РґР°РЅРЅС‹С… РёР· РѕРґРЅРѕРіРѕ СЃРµСЂРІРµСЂР° ClickHouse РІ РґСЂСѓРіРѕР№. РћРЅ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё СЃРѕР·РґР°РµС‚ Р±Р°Р·С‹ РґР°РЅРЅС‹С… Рё С‚Р°Р±Р»РёС†С‹ РЅР° С†РµР»РµРІРѕРј СЃРµСЂРІРµСЂРµ Рё РїРµСЂРµРЅРѕСЃРёС‚ РІСЃРµ РґР°РЅРЅС‹Рµ.
+# transfer_from_ch_to_ch
 
-РўСЂРµР±РѕРІР°РЅРёСЏ
-Python 3.6+
-Docker
-Р”РѕСЃС‚СѓРї Рє РёСЃС…РѕРґРЅРѕРјСѓ Рё С†РµР»РµРІРѕРјСѓ СЃРµСЂРІРµСЂР°Рј ClickHouse
-РЈСЃС‚Р°РЅРѕРІРєР° Рё РЅР°СЃС‚СЂРѕР№РєР°
-1. РЈСЃС‚Р°РЅРѕРІРєР° Docker
-РћР±РЅРѕРІРёС‚Рµ РїР°РєРµС‚С‹:
+Этот проект предназначен для переноса данных из одного сервера ClickHouse в другой. Он автоматически создает базы данных и таблицы на целевом сервере и переносит все данные.
 
+## Требования
+
+- Python 3.10+
+- Docker
+- Доступ к исходному и целевому серверам ClickHouse
+
+## Установка и настройка
+
+### 1. Установка Docker
+
+1. Обновите пакеты:
+``` bash
 sudo apt-get update
-РЈСЃС‚Р°РЅРѕРІРёС‚Рµ РЅРµРѕР±С…РѕРґРёРјС‹Рµ РїР°РєРµС‚С‹:
+```
 
+2. Установите необходимые пакеты:
+``` bash
 sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release
-Р”РѕР±Р°РІСЊС‚Рµ GPG РєР»СЋС‡ Docker:
+```
 
+3. Добавьте GPG ключ Docker:
+``` bash
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-РќР°СЃС‚СЂРѕР№С‚Рµ СЂРµРїРѕР·РёС‚РѕСЂРёР№:
+```
 
+4. Настройте репозиторий:
+``` bash
 echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-РЈСЃС‚Р°РЅРѕРІРёС‚Рµ Docker Engine:
+```
 
-sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io
-РџСЂРѕРІРµСЂСЊС‚Рµ СѓСЃС‚Р°РЅРѕРІРєСѓ:
+5. Установите Docker Engine:
+``` bash
+sudo apt-get update sudo apt-get install docker-ce docker-ce-cli containerd.io
+```
 
+6. Проверьте установку:
+``` bash
 sudo docker run hello-world
-2. Р Р°Р·РІРµСЂС‚С‹РІР°РЅРёРµ ClickHouse РІ Docker
-РЎРѕР·РґР°Р№С‚Рµ РґРёСЂРµРєС‚РѕСЂРёСЋ РґР»СЏ РґР°РЅРЅС‹С… ClickHouse:
+```
 
+### 2. Развертывание ClickHouse в Docker
+
+1. Создайте директорию для данных ClickHouse:
+``` bash
 sudo mkdir -p /path/to/data
-Р—Р°РїСѓСЃС‚РёС‚Рµ РєРѕРЅС‚РµР№РЅРµСЂ ClickHouse:
+```
 
-docker run -d \
-    --name some-clickhouse-server \
-    --restart=always \
-    -p 8123:8123 \
-    --ulimit nofile=262144:262144 \
-    -v /path/to/data:/var/lib/clickhouse \
-    -e CLICKHOUSE_USER=admin \
-    -e CLICKHOUSE_PASSWORD=12345m678 \
-    clickhouse/clickhouse-server:24.4
-РџРѕСЏСЃРЅРµРЅРёСЏ:
+2. Запустите контейнер ClickHouse:
+``` bash
+docker run -d \ --name some-clickhouse-server \ --restart=always \ -p 8123:8123 \ --ulimit nofile=262144:262144 \ -v /path/to/data:/var/lib/clickhouse \ -e CLICKHOUSE_USER=user \ -e CLICKHOUSE_PASSWORD=password \ clickhouse/clickhouse-server:24.4
+```
 
--d: Р·Р°РїСѓСЃРє РІ С„РѕРЅРѕРІРѕРј СЂРµР¶РёРјРµ
---name: РёРјСЏ РєРѕРЅС‚РµР№РЅРµСЂР°
---restart=always: Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРёР№ РїРµСЂРµР·Р°РїСѓСЃРє РєРѕРЅС‚РµР№РЅРµСЂР°
--p 8123:8123: РїСЂРѕР±СЂРѕСЃ РїРѕСЂС‚Р° HTTP-РёРЅС‚РµСЂС„РµР№СЃР° ClickHouse
---ulimit nofile=262144:262144: СѓРІРµР»РёС‡РµРЅРёРµ Р»РёРјРёС‚Р° РѕС‚РєСЂС‹С‚С‹С… С„Р°Р№Р»РѕРІ
--v /path/to/data:/var/lib/clickhouse: РјРѕРЅС‚РёСЂРѕРІР°РЅРёРµ Р»РѕРєР°Р»СЊРЅРѕР№ РґРёСЂРµРєС‚РѕСЂРёРё РґР»СЏ С…СЂР°РЅРµРЅРёСЏ РґР°РЅРЅС‹С…
--e CLICKHOUSE_USER Рё -e CLICKHOUSE_PASSWORD: Р·Р°РґР°РЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ Рё РїР°СЂРѕР»СЏ
-РџСЂРѕРІРµСЂСЊС‚Рµ, С‡С‚Рѕ РєРѕРЅС‚РµР№РЅРµСЂ Р·Р°РїСѓС‰РµРЅ:
+Пояснения:
+- `-d`: запуск в фоновом режиме
+- `--name`: имя контейнера
+- `--restart=always`: автоматический перезапуск контейнера
+- `-p 8123:8123`: проброс порта HTTP-интерфейса ClickHouse
+- `--ulimit nofile=262144:262144`: увеличение лимита открытых файлов
+- `-v /path/to/data:/var/lib/clickhouse`: монтирование локальной директории для хранения данных
+- `-e CLICKHOUSE_USER` и `-e CLICKHOUSE_PASSWORD`: задание пользователя и пароля
 
+3. Проверьте, что контейнер запущен:
 docker ps
-3. РЈСЃС‚Р°РЅРѕРІРєР° Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№ Python
-РЎРѕР·РґР°Р№С‚Рµ РІРёСЂС‚СѓР°Р»СЊРЅРѕРµ РѕРєСЂСѓР¶РµРЅРёРµ:
 
-python -m venv venv
-source venv/bin/activate  # РќР° Linux/macOS
-venv\Scripts\activate.bat  # РќР° Windows
-РЈСЃС‚Р°РЅРѕРІРёС‚Рµ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё:
 
+### 3. Установка зависимостей Python
+
+1. Создайте виртуальное окружение:
+``` bash
+python -m venv venv source venv/bin/activate # На Linux/macOS venv\Scrips\activate.bat # На Windows
+```
+
+2. Установите зависимости:
+``` bash
 pip install -r requirements.txt
-РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ
-РћС‚РєСЂРѕР№С‚Рµ main.py Рё РЅР°СЃС‚СЂРѕР№С‚Рµ РїР°СЂР°РјРµС‚СЂС‹ РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє РёСЃС…РѕРґРЅРѕРјСѓ Рё С†РµР»РµРІРѕРјСѓ ClickHouse СЃРµСЂРІРµСЂР°Рј:
+```
 
-python
-Copy code
-source_client = clickhouse_connect.get_client(host='95.140.154.190', user='default', password='123')
-target_client = clickhouse_connect.get_client(host='194.26.232.173', user='admin', password='12345m678')
-Р—Р°РїСѓСЃС‚РёС‚Рµ СЃРєСЂРёРїС‚:
+## Использование
 
+1. Откройте `main.py` и настройте параметры подключения к исходному и целевому ClickHouse серверам:
+```python
+source_client = clickhouse_connect.get_client(host='1.1.1.1', user='user', password='password')
+target_client = clickhouse_connect.get_client(host='2.2.2.2', user='user', password='password')
+```
+Запустите скрипт:
+
+```
 python main.py
-РЎРєСЂРёРїС‚ РІС‹РїРѕР»РЅРёС‚ СЃР»РµРґСѓСЋС‰РёРµ РґРµР№СЃС‚РІРёСЏ:
+```
 
-РЎРѕР·РґР°СЃС‚ РЅР° С†РµР»РµРІРѕРј СЃРµСЂРІРµСЂРµ РІСЃРµ Р±Р°Р·С‹ РґР°РЅРЅС‹С…, СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёРµ РЅР° РёСЃС…РѕРґРЅРѕРј (РєСЂРѕРјРµ СЃРёСЃС‚РµРјРЅС‹С…).
-РЎРѕР·РґР°СЃС‚ РІСЃРµ С‚Р°Р±Р»РёС†С‹ СЃ РёРґРµРЅС‚РёС‡РЅРѕР№ СЃС‚СЂСѓРєС‚СѓСЂРѕР№.
-РџРµСЂРµРЅРµСЃРµС‚ РІСЃРµ РґР°РЅРЅС‹Рµ РёР· РёСЃС…РѕРґРЅС‹С… С‚Р°Р±Р»РёС† РІ С†РµР»РµРІС‹Рµ.
-Р’Р°Р¶РЅС‹Рµ Р·Р°РјРµС‡Р°РЅРёСЏ
-РЎРєСЂРёРїС‚ РѕС‡РёС‰Р°РµС‚ С†РµР»РµРІС‹Рµ С‚Р°Р±Р»РёС†С‹ РїРµСЂРµРґ РїРµСЂРµРЅРѕСЃРѕРј РґР°РЅРЅС‹С….
-РЎРёСЃС‚РµРјРЅС‹Рµ Р±Р°Р·С‹ РґР°РЅРЅС‹С… (system, INFORMATION_SCHEMA, information_schema) РёРіРЅРѕСЂРёСЂСѓСЋС‚СЃСЏ.
-Р”Р°РЅРЅС‹Рµ РїРµСЂРµРЅРѕСЃСЏС‚СЃСЏ С‡Р°РЅРєР°РјРё РїРѕ 100,000 СЃС‚СЂРѕРє РґР»СЏ СЌС„С„РµРєС‚РёРІРЅРѕСЃС‚Рё.
+Скрипт выполнит следующие действия:
+
+- Создаст на целевом сервере все базы данных, существующие на исходном (кроме системных).
+- Создаст все таблицы с идентичной структурой.
+- Перенесет все данные из исходных таблиц в целевые.
+
+
+## Важные замечания
+Скрипт очищает целевые таблицы перед переносом данных.
+
+Системные базы данных (system, INFORMATION_SCHEMA, information_schema) игнорируются.
+
+Данные переносятся чанками по 100,000 строк для эффективности.
