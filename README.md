@@ -71,10 +71,21 @@ docker ps
 
 1. Создайте виртуальное окружение:
 ``` bash
-python -m venv venv source venv/bin/activate # На Linux/macOS venv\Scrips\activate.bat # На Windows
+python -m venv venv 
 ```
 
-2. Установите зависимости:
+2. Запустите окружение
+# На Linux/macOS
+``` bash
+source venv/bin/activate
+```
+
+# На Windows
+``` bash
+venv\Scrips\activate.bat 
+```
+
+3. Установите зависимости:
 ``` bash
 pip install -r requirements.txt
 ```
