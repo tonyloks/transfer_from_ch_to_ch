@@ -75,12 +75,12 @@ python -m venv venv
 ```
 
 2. Запустите окружение
-# На Linux/macOS
+#### На Linux/macOS
 ``` bash
 source venv/bin/activate
 ```
 
-# На Windows
+#### На Windows
 ``` bash
 venv\Scrips\activate.bat 
 ```
